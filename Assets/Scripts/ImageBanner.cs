@@ -1,13 +1,14 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Assets.SimpleSlider.Scripts
+namespace SimpleSlider
 {
 	[Serializable]
-	public class Banner
+	public class ImageBanner
 	{
 		public string Name;
 		public string Url;
+		public string ImageUrl;
 		public Sprite Sprite;
 	}
 }

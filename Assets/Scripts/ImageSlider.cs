@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
-namespace Assets.SimpleSlider.Scripts
+namespace SimpleSlider
 {
 	/// <summary>
 	/// Creates banners and paginator by given banner list.
 	/// </summary>
-	public class Slider : MonoBehaviour
+	public class ImageSlider : MonoBehaviour
 	{
 		[Header("Settings")]
-		public List<Banner> Banners;
+		public List<ImageBanner> Banners;
 		public bool Random;
 		public bool Elastic = true;
 
@@ -55,7 +56,10 @@ namespace Assets.SimpleSlider.Scripts
 					button.onClick.AddListener(() => { Application.OpenURL(banner.Url); });
 				}
 
-				instance.GetComponent<Image>().sprite = banner.Sprite;
+				if(string.IsNullOrEmpty(banner.ImageUrl))
+					instance.GetComponent<Image>().sprite = banner.Sprite;				
+				else
+					StartCoroutine(Downloader(instance, banner.ImageUrl));				
 
 				if (Banners.Count > 1)
 				{
@@ -69,6 +73,32 @@ namespace Assets.SimpleSlider.Scripts
 
 			HorizontalScrollSnap.Initialize(Random);
 			HorizontalScrollSnap.GetComponent<ScrollRect>().movementType = Elastic ? ScrollRect.MovementType.Elastic : ScrollRect.MovementType.Clamped;
+		}
+
+		IEnumerator Downloader(Button go, string url)
+		{
+			if (url != null)
+			{
+				var www = UnityWebRequestTexture.GetTexture(url);
+				yield return www.SendWebRequest();
+				if (www.isNetworkError || www.isHttpError)
+				{
+					Debug.LogError(www.error);
+				}
+				else
+				{
+					var texture = DownloadHandlerTexture.GetContent(www);
+					go.GetComponent<Image>().color = Color.white;
+					go.GetComponent<Image>().sprite = Sprite.Create(
+						texture,
+						new Rect(0, 0, texture.width, texture.height),
+						new Vector2(0.5f, 0.5f));
+				}
+			}
+			else
+			{
+				yield return null;
+			}
 		}
 	}
 }
